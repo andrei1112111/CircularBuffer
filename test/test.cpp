@@ -2,25 +2,28 @@
 #include "CircularBuffer.h"
 
 
-TEST(CircularBufferTest, Construct) {
-    int s;
-
-    // without parameters
+TEST(Construct, without_parameters) {
     ASSERT_NO_FATAL_FAILURE(CircularBuffer<int>());
+}
 
-    // with capacity
+TEST(Construct, with_capacity) {
     ASSERT_NO_FATAL_FAILURE(CircularBuffer<int>(-1));
     ASSERT_NO_FATAL_FAILURE(CircularBuffer<int>(2));
+}
 
-    // with capacity and value
+TEST(Construct, with_capacity_and_value) {
+    int s;
     ASSERT_NO_FATAL_FAILURE(CircularBuffer<int>(12, s));
     ASSERT_NO_FATAL_FAILURE(CircularBuffer<int>(-122, s));
+}
 
-    // from another CircularBuffer
+TEST(Construct, from_another_CircularBuffer) {
+    int s;
     ASSERT_NO_FATAL_FAILURE(CircularBuffer<int>(CircularBuffer<int>()));
     ASSERT_NO_FATAL_FAILURE(CircularBuffer<int>(CircularBuffer<int>(-122, s)));
+}
 
-    // deconstruct
+TEST(Construct, deconstruct) {
     auto *cb = new CircularBuffer<int>();
     ASSERT_NO_FATAL_FAILURE(cb->~CircularBuffer<int>());
     delete cb;
@@ -30,19 +33,8 @@ TEST(CircularBufferTest, Construct) {
     delete cbb;
 }
 
-TEST(CircularBufferTest, Getters) {
-    int s;
 
-    //test getters with not empty buffer
-    auto cb = CircularBuffer<int>(12, s);
-
-    ASSERT_EQ(cb.capacity(), 12);
-    ASSERT_EQ(cb.full(), true);
-    ASSERT_EQ(cb.size(), 12);
-    ASSERT_EQ(cb.empty(), false);
-    ASSERT_EQ(cb.reserve(), 0);
-
-    // test getters with empty buffer
+TEST(Getters, with_empty_buffer) {
     auto ecb = CircularBuffer<int>();
 
     ASSERT_EQ(ecb.capacity(), 0);
@@ -50,15 +42,45 @@ TEST(CircularBufferTest, Getters) {
     ASSERT_EQ(ecb.size(), 0);
     ASSERT_EQ(ecb.empty(), true);
     ASSERT_EQ(ecb.reserve(), 0);
-
-    // front, back
-    auto a = CircularBuffer<int>(12, s);
-    auto b = CircularBuffer<int>(12, s);
-
-
 }
 
-TEST(CircularBufferTest, Indexing) {
+TEST(Getters, with_not_empty_buffer) {
+    int s;
+    auto cb = CircularBuffer<int>(12, s);
+
+    ASSERT_EQ(cb.capacity(), 12);
+    ASSERT_EQ(cb.full(), true);
+    ASSERT_EQ(cb.size(), 12);
+    ASSERT_EQ(cb.empty(), false);
+    ASSERT_EQ(cb.reserve(), 0);
+}
+
+TEST(Getters, front_and_back) {
+    int s;
+    // front, back
+    auto a = CircularBuffer<int>(12, s);
+    auto b = CircularBuffer<int>();
+
+    ASSERT_EQ(a.front(), s);
+
+    a.push_front(1);
+    ASSERT_EQ(a.front(), 1);
+    ASSERT_EQ(a.back(), s);
+
+    ASSERT_THROW(b.front(), std::out_of_range);
+}
+
+TEST(Getters, clear_and_check_empty) {
+    CircularBuffer<int> cb(5);
+    cb.push_back(1);
+    cb.push_back(2);
+
+    cb.clear();
+    ASSERT_EQ(cb.size(), 0);
+    ASSERT_TRUE(cb.empty());
+}
+
+TEST(Indexing, indexing) {
     auto cb = CircularBuffer<int>(4);
 
     for (int i = 1; i < 10; ++i) {
@@ -71,26 +93,30 @@ TEST(CircularBufferTest, Indexing) {
     ASSERT_THROW(cb.pop_back(), std::out_of_range);
 }
 
-TEST(CircularBufferTest, Methods) {
+TEST(Methods, clear) {
     int s;
 
-    /*  clear  */
     auto cb = CircularBuffer<int>(12, s);
     ASSERT_NO_FATAL_FAILURE(cb.clear());
 
     auto ecb = CircularBuffer<int>();
     ASSERT_NO_FATAL_FAILURE(cb.clear());
+}
 
+TEST(Methods, swap) {
+    int s;
 
-    /*  swap  */
     auto cb2 = CircularBuffer<int>(12, s);
     auto cb2_copy = cb2;
     auto ecb2 = CircularBuffer<int>(12);
     ASSERT_NO_FATAL_FAILURE(ecb2.swap(cb2));
 
     ASSERT_EQ(ecb2, cb2_copy);
+}
 
-    /* push back, push front */
+TEST(Methods, push) {
+    int s;
+
     auto cbb = CircularBuffer<int>(3);
     cbb.push_back({});
     cbb.push_back(s);
@@ -99,35 +125,57 @@ TEST(CircularBufferTest, Methods) {
     ASSERT_EQ(cbb.front(), cbb.back());
     cbb.push_back({});
     ASSERT_NE(cbb.front(), cbb.back());
-    // *********
+
     cbb.push_front({});
     cbb.push_front({});
     ASSERT_EQ(cbb.front(), cbb.back());
     cbb.push_back(s);
     ASSERT_NE(cbb.front(), cbb.back());
+}
+TEST(Methods, resize) {
+    int s;
 
-    /* resize */
-    cb2_copy.resize(2);
-    ASSERT_EQ(cb2_copy.back(), s);
+    auto cb2 = CircularBuffer<int>(12, s);
 
-    cb2_copy.resize(10, {});
-    ASSERT_EQ(cb2_copy.back(), {});
+    cb2.resize(2);
+    ASSERT_EQ(cb2.back(), s);
+
+    cb2.resize(10, {});
+    ASSERT_EQ(cb2.back(), {});
 }
 
-TEST(CircularBufferTest, Operators) {
+TEST(Methods, clear_and_check_empty) {
+    CircularBuffer<int> cb(5);
+    cb.push_back(1);
+    cb.push_back(2);
+
+    cb.clear();
+    ASSERT_EQ(cb.size(), 0);
+    ASSERT_TRUE(cb.empty());
+}
+
+TEST(Operators, eq) {
+    int s;
+
+    // not empty
+    ASSERT_EQ(CircularBuffer<int>(12, s), CircularBuffer<int>(12, s));
+
+    // empty
+    ASSERT_EQ(CircularBuffer<int>(), CircularBuffer<int>());
+}
+
+TEST(Operators, neq) {
     int s;
 
     // not empty
     ASSERT_NE(CircularBuffer<int>(3), CircularBuffer<int>(3, {}));
-    ASSERT_EQ(CircularBuffer<int>(12, s), CircularBuffer<int>(12, s));
     ASSERT_NE(CircularBuffer<int>(10), CircularBuffer<int>(12));
 
     // empty
-    ASSERT_EQ(CircularBuffer<int>(), CircularBuffer<int>());
     ASSERT_NE(CircularBuffer<int>(), CircularBuffer<int>(1));
 }
 
-TEST(CircularBufferTest, Assignment) {
+TEST(Assignment, assignment) {
     ASSERT_NO_FATAL_FAILURE(CircularBuffer<int>() = CircularBuffer<int>());
     ASSERT_NO_FATAL_FAILURE(CircularBuffer<int>(12, {}) = CircularBuffer<int>());
     ASSERT_NO_FATAL_FAILURE(CircularBuffer<int>(12, {}) = CircularBuffer<int>());
@@ -152,7 +200,12 @@ TEST(CircularBufferTest, Assignment) {
     );
 }
 
-TEST(CircularBufferTest, Linearization) {
+
+
+
+
+
+TEST(Methods, linearization) {
     CircularBuffer<int> cb(5);
     cb.push_back(1);
     cb.push_back(2);
@@ -166,7 +219,7 @@ TEST(CircularBufferTest, Linearization) {
     ASSERT_EQ(cb.front(), 0);
 }
 
-TEST(CircularBufferTest, Rotate) {
+TEST(Methods, rotate) {
     CircularBuffer<int> cb(5);
     cb.push_back(1);
     cb.push_back(2);
@@ -177,7 +230,7 @@ TEST(CircularBufferTest, Rotate) {
     ASSERT_EQ(cb.front(), 3);
 }
 
-TEST(CircularBufferTest, Insert) {
+TEST(Methods, insert) {
     CircularBuffer<int> cb(5);
     cb.push_back(1);
     cb.push_back(2);
@@ -188,7 +241,7 @@ TEST(CircularBufferTest, Insert) {
     ASSERT_EQ(cb.size(), 4);
 }
 
-TEST(CircularBufferTest, Erase) {
+TEST(Methods, erase) {
     CircularBuffer<int> cb(5);
     cb.push_back(1);
     cb.push_back(2);
@@ -201,42 +254,7 @@ TEST(CircularBufferTest, Erase) {
     ASSERT_EQ(cb[1], 4);
 }
 
-TEST(CircularBufferTest, RotateOutOfBounds) {
-    CircularBuffer<int> cb(5);
-    cb.push_back(1);
-    cb.push_back(2);
-    cb.push_back(3);
-
-    ASSERT_THROW(cb.rotate(5), std::out_of_range);
-}
-
-TEST(CircularBufferTest, InsertOutOfBounds) {
-    CircularBuffer<int> cb(5);
-    cb.push_back(1);
-    cb.push_back(2);
-
-    ASSERT_THROW(cb.insert(3, 99), std::out_of_range);
-}
-
-TEST(CircularBufferTest, EraseOutOfBounds) {
-    CircularBuffer<int> cb(5);
-    cb.push_back(1);
-    cb.push_back(2);
-
-    ASSERT_THROW(cb.erase(1, 3), std::out_of_range);
-}
-
-TEST(CircularBufferTest, ClearAndCheckEmpty) {
-    CircularBuffer<int> cb(5);
-    cb.push_back(1);
-    cb.push_back(2);
-
-    cb.clear();
-    ASSERT_EQ(cb.size(), 0);
-    ASSERT_TRUE(cb.empty());
-}
-
-TEST(CircularBufferTest, SetCapacity) {
+TEST(Methods, set_capacity) {
     CircularBuffer<int> cb(5);
 
     // Fill the buffer
@@ -270,4 +288,29 @@ TEST(CircularBufferTest, SetCapacity) {
 
     // Test negative capacity
     ASSERT_THROW(cb.set_capacity(-1), std::out_of_range);
+}
+
+TEST(Exceptions, rotate_out_of_bounds) {
+    CircularBuffer<int> cb(5);
+    cb.push_back(1);
+    cb.push_back(2);
+    cb.push_back(3);
+
+    ASSERT_THROW(cb.rotate(5), std::out_of_range);
+}
+
+TEST(Exceptions, insert_out_of_bounds) {
+    CircularBuffer<int> cb(5);
+    cb.push_back(1);
+    cb.push_back(2);
+
+    ASSERT_THROW(cb.insert(3, 99), std::out_of_range);
+}
+
+TEST(Exceptions, erase_out_of_bounds) {
+    CircularBuffer<int> cb(5);
+    cb.push_back(1);
+    cb.push_back(2);
+
+    ASSERT_THROW(cb.erase(1, 3), std::out_of_range);
 }
